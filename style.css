@@ -1,0 +1,43 @@
+/* Simple clean styling for CSV table and email */
+
+/* Page layout basics */
+body {
+    margin: 20px auto;
+    padding: 10px;
+    max-width: 900px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    color: #000;
+    background-color: #fff;
+}
+
+/* Center titles */
+h1 {
+    text-align: center;
+    font-size: 22px;
+    margin-bottom: 20px;
+}
+
+/* Table styling */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 0 auto 20px auto;
+}
+
+th, td {
+    border: 1px solid #333;
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+}
+
+th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+/* Make the table scroll on small screens */
+.table-container {
+    overflow-x: auto;
+}
