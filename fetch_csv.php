@@ -1,7 +1,8 @@
 <?php
-// URL of the published Google Sheet CSV
-$csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSrItDolNht1WdX7M8o7bjkkTpizpHA49TNVPM8dvEjG-GktrhhIQcUeNmHCcs3rFNPzxH_H5M-GUbR/pub?gid=1011241333&single=true&output=csv";
+$config = include "config.php";
 
+// URL of the published Google Sheet CSV
+$csvUrl = $config['csv_url'];
 // Fetch CSV content
 $csvData = file_get_contents($csvUrl);
 

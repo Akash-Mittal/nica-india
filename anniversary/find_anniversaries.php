@@ -1,14 +1,19 @@
 <?php
 // find_anniversaries.php
 
-$config = include "config.php";
-$rows   = include "fetch_csv.php";
+$config = include __DIR__ . '/../config.php';
+
+// If $rows is not already defined (e.g., by a test script), then fetch it.
+if (!isset($rows)) {
+    $rows = include __DIR__ . '/../fetch_csv.php';
+}
 
 // Set your timezone
 date_default_timezone_set('Asia/Kolkata');
 
 // Compare *dates only* – today at midnight
-$today = new DateTime('today'); // 2026-02-14 00:00:00, for example
+// Allow $testToday to be injected for testing purposes
+$today = isset($testToday) ? $testToday : new DateTime('today'); // 2026-02-14 00:00:00, for example
 
 $matches = [];
 

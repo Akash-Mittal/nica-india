@@ -2,7 +2,7 @@
 // build_email.php
 
 $config        = include "config.php";
-$anniversaries = include "find_anniversaries.php";
+$anniversaries = include "./anniversary/find_anniversaries.php";
 
 $fellowshipName = $config["fellowship_name"] ?? "NICA India Fellowship";
 
@@ -22,15 +22,9 @@ if (empty($anniversaries)) {
 
     foreach ($anniversaries as $person) {
         $plainTextBody .= "- Name: " . $person["name"] . "\n";
-        $plainTextBody .= "  Sobriety start date: " . $person["sobriety_start"] . "\n";
         $plainTextBody .= "  Milestone(s): " . implode(", ", $person["milestones"]) . "\n";
         $plainTextBody .= "  Location: " . $person["location"] . "\n";
         $plainTextBody .= "  Phone (WhatsApp): " . $person["phone"] . "\n";
-        $plainTextBody .= "  Email: " . $person["email"] . "\n";
-        $plainTextBody .= "  Included in NICA India Helpline: " . $person["helpline_optin"] . "\n";
-        $plainTextBody .= "  Anniversary to be shared with fellowship: " . $person["share_anniv"] . "\n";
-
-        // blank line between members
         $plainTextBody .= "\n";
     }
 
