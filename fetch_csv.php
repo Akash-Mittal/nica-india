@@ -1,9 +1,17 @@
 <?php
-$config = include "config.php";
+// fetch_csv.php
 
-// URL of the published Google Sheet CSV
-$csvUrl = $config['csv_url'];
-// Fetch CSV content
+require_once __DIR__ . '/vendor/autoload.php';   // ← add this
+
+use Dotenv\Dotenv;
+
+// the rest of your code...
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+echo "Current directory: " . __DIR__ . "\n";
+echo "CSV_URL from _ENV:    '" . ($_ENV['CSV_URL'] ?? 'NOT SET') . "'\n\n";
+
+$csvUrl = $_ENV['CSV_URL'] ?? null;// Fetch CSV content
 $csvData = file_get_contents($csvUrl);
 
 if ($csvData === false) {
