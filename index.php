@@ -102,7 +102,6 @@ function formatSoberDuration(?DateTime $startDate, DateTime $today): string {
             }
             ?>
         <?php endforeach; ?>
-        </tr>
     <?php endforeach; ?>
 </table>
 </body>

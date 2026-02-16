@@ -22,7 +22,7 @@ $config = [
     'smtp_port'       => (int) ($_ENV['SMTP_PORT'] ?? 465),
     'smtp_secure'     => strtolower($_ENV['SMTP_SECURE'] ?? 'ssl'),
     'email_from'      => $_ENV['EMAIL_FROM']      ?? die("Missing EMAIL_FROM in .env\n"),
-    'email_reply_to'  => $_ENV['EMAIL_REPLY_TO']  ?? $_ENV['EMAIL_FROM'] ?? die("Missing EMAIL_REPLY_TO and EMAIL_FROM in .env\n"),
+    'email_reply_to'  => $_ENV['EMAIL_REPLY_TO']  ?? $_ENV['EMAIL_FROM'],
     'fellowship_name' => $_ENV['FELLOWSHIP_NAME'] ?? 'NICA Fellowship',
 ];
 
@@ -91,12 +91,12 @@ try {
         throw new Exception("No valid recipient email addresses found");
     }
 
-    $mail->isHTML(true);
+    $mail->isHTML();
     $mail->Subject = $email['subject'];
 
     $css = file_exists(__DIR__ . '/style.css') ? file_get_contents(__DIR__ . '/style.css') : '';
 
-    $htmlBody = '<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    $htmlBody = '<!DOCTYPE html><html lang=""><head><meta charset="UTF-8">'
         . '<style>' . $css . '</style></head><body>'
         . '<pre style="font-family: Arial, sans-serif; white-space: pre-wrap; word-wrap: break-word; margin: 0; padding: 16px;">'
         . nl2br(htmlspecialchars($email['body'], ENT_QUOTES, 'UTF-8'))
