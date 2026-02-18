@@ -3,7 +3,7 @@
 use PHPUnit\Framework\TestCase;
 use GuzzleHttp\Client;
 
-class CheckUrlTest extends TestCase
+class checkURLTest extends TestCase
 {
     private $client;
 
