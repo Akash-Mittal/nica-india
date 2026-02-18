@@ -25,7 +25,7 @@ $upi_link = "upi://pay?pa=" . urlencode($upi_id) .
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Redirecting to UPI Payment</title>
+    <title>(NICA-India-Online 7th Tradition)Redirecting to UPI Payment</title>
 
     <link rel="stylesheet" href="style.css">
 
