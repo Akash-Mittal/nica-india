@@ -9,7 +9,7 @@ if ($amount <= 0) {
 }
 
 // UPI details
-$upi_id = "9588233309@upi";
+$upi_id = "anupamtyagi079@okicici";
 $name = "NICA-India-Treasurar";
 
 // Build UPI link
