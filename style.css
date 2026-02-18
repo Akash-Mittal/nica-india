@@ -1,156 +1,74 @@
-/* -------------------------------------------------
-   Clean template CSS for:
-   - Email template preview pages
-   - Payment/redirect pages
-   - CSV/table data pages
--------------------------------------------------- */
-
-:root{
-    --bg: #ffffff;
-    --text: #111111;
-    --muted: #555555;
-    --border: #e6e6e6;
-    --border-strong: #cfcfcf;
-    --header-bg: #f6f7f8;
-    --card: #ffffff;
-    --shadow: 0 6px 22px rgba(0,0,0,0.06);
-    --radius: 14px;
-    --max: 920px;
-}
-
-* { box-sizing: border-box; }
-
-html, body{
-    margin: 0;
-    padding: 0;
-    background: #f5f6f8;
-    color: var(--text);
-    font-family: Arial, sans-serif;
-    font-size: 14px;
-    line-height: 1.45;
-}
-
-/* Page container (works like an email body width + nice payment page layout) */
-.container{
-    max-width: var(--max);
-    margin: 18px auto;
-    padding: 16px;
-}
-
-/* Card wrapper (use on payment pages / email previews) */
-.card{
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 18px;
-}
-
-/* Titles */
-h1{
-    margin: 0 0 14px 0;
-    text-align: center;
-    font-size: 22px;
-    letter-spacing: 0.2px;
-}
-h2{
-    margin: 0 0 10px 0;
-    font-size: 18px;
-}
-p{
-    margin: 8px 0;
-    color: var(--muted);
-}
-
-/* Payment highlight (amount / status) */
-.amount{
-    font-size: 34px;
-    font-weight: 700;
-    color: var(--text);
-    text-align: center;
-    margin: 10px 0 6px 0;
-}
-.subtext{
-    text-align: center;
-    color: var(--muted);
-}
-
-/* Button-like links (works in normal web; email clients may ignore some styling) */
-a{
-    color: #0b57d0;
-    text-decoration: none;
-}
-a:hover{ text-decoration: underline; }
-
-.btn{
-    display: inline-block;
-    padding: 10px 14px;
-    border-radius: 12px;
-    border: 1px solid var(--border-strong);
-    background: #fff;
-    color: var(--text);
-    font-weight: 600;
-}
-.btn:active{ transform: translateY(1px); }
-
-/* Divider */
-.hr{
-    height: 1px;
-    background: var(--border);
-    margin: 14px 0;
-}
-
 /* -----------------------
-   Table styling (CSV/data)
+   URL Validator UI
 ------------------------ */
-.table-container{
-    width: 100%;
-    overflow-x: auto;
-    border: 1px solid var(--border);
+
+.form-row{
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.input{
+    flex: 1;
+    min-width: 260px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-strong);
     border-radius: 12px;
+    background: #fff;
+    color: var(--text);
+    outline: none;
+}
+
+.input:focus{
+    border-color: #9bb7ff;
+    box-shadow: 0 0 0 3px rgba(11,87,208,0.10);
+}
+
+.btn-row{
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-secondary{
+    border: 1px solid var(--border);
+    background: var(--header-bg);
+    color: var(--text);
+}
+
+.result{
+    margin-top: 16px;
+}
+
+.alert{
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 14px;
     background: #fff;
 }
 
-table{
-    border-collapse: separate;
-    border-spacing: 0;
-    width: 100%;
-    min-width: 620px;
+.alert-title{
+    font-weight: 800;
+    margin-bottom: 6px;
 }
 
-th, td{
-    padding: 10px 12px;
-    text-align: left;
-    vertical-align: top;
-    border-bottom: 1px solid var(--border);
+.kv{
+    margin: 6px 0;
+    color: var(--text);
 }
 
-th{
-    background: var(--header-bg);
-    color: #222;
+.kv strong{
     font-weight: 700;
-    border-bottom: 1px solid var(--border-strong);
-    position: sticky;
-    top: 0;
-    z-index: 1;
 }
 
-tr:last-child td{ border-bottom: 0; }
-
-tbody tr:nth-child(even) td{
-    background: #fafafa;
+.alert-success{
+    background: #e8f5e9;
+    border-color: #a5d6a7;
 }
 
-/* Small helper labels for emails */
-.meta{
-    font-size: 12px;
-    color: var(--muted);
-}
-
-/* Mobile tweaks */
-@media (max-width: 640px){
-    .container{ padding: 12px; margin: 10px auto; }
-    .card{ padding: 14px; border-radius: 12px; }
-    h1{ font-size: 20px; }
-    .amount{ font-size: 30px; }
+.alert-error{
+    background: #ffebee;
+    border-color: #ef9a9a;
 }
