@@ -1,0 +1,11 @@
+*{{FELLOWSHIP_NAME}}*
+📅 *{{TITLE_DATE}}*
+━━━━━━━━━━━━━━━
+{{ANNIVERSARY_ROWS}}
+━━━━━━━━━━━━━━━
+
+🔥 *Proud of you all!* 🙌
+Please share your *hope, strength & experience.*
+
+Add your anniversary, fill this form:
+{{FORM_LINK}}

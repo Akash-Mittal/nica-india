@@ -1,73 +1,90 @@
 <?php
-// build_email.php
 
 $anniversaries = include __DIR__ . "/find_anniversaries.php";
 
-$fellowshipName  = $_ENV['FELLOWSHIP_NAME']  ?? 'NICA India Fellowship';
-$emailRecipients = $_ENV['EMAIL_RECIPIENTS'] ?? 'mail.akash.on@gmail.com,mittal.akash.adam@gmail.com';
-$emailSubject    = $_ENV['EMAIL_SUBJECT']    ?? 'NICA India – Upcoming Sobriety Anniversaries';
+$fellowshipName  = $_ENV['FELLOWSHIP_NAME']  ?? 'Nicotine Anonymous India';
+$emailSubject    = $_ENV['EMAIL_SUBJECT']    ?? 'Upcoming Sobriety Anniversaries';
+$formLink        = $_ENV['FORM_LINK']        ?? 'https://forms.gle/vNE9g1igyuvV38Pk8';
+$titleDate       = $_ENV['TITLE_DATE']       ?? date('d M Y');
 
-$templatePath = __DIR__ . "/anniversary_email_Template.html";
+$templatePath = __DIR__ . "/anniversary_whatsapp_Template.txt";
 if (!file_exists($templatePath)) {
-    throw new RuntimeException("Email template file not found: {$templatePath}");
+    throw new RuntimeException("WhatsApp template file not found: {$templatePath}");
 }
-$templateHtml = file_get_contents($templatePath);
-if ($templateHtml === false) {
-    throw new RuntimeException("Unable to read email template file: {$templatePath}");
-}
-
-function e(string $value): string {
-    return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+$templateText = file_get_contents($templatePath);
+if ($templateText === false) {
+    throw new RuntimeException("Unable to read WhatsApp template file: {$templatePath}");
 }
 
-function buildAnniversaryRows(array $anniversaries): string {
+function wa_escape(string $value): string {
+    $value = str_replace(["\r\n", "\r"], "\n", $value);
+    $value = preg_replace("/[ \t]+/", " ", $value);
+    return trim($value);
+}
+
+function wa_title_case(string $s): string {
+    $s = wa_escape($s);
+    return $s === '' ? '' : $s;
+}
+
+function buildWhatsappRows(array $anniversaries): string {
     if (empty($anniversaries)) {
-        return '<tr><td style="padding:12px 0;">No sobriety anniversaries match the configured milestones.</td></tr>';
+        return "No sobriety anniversaries match the configured milestones.";
     }
 
-    $rows = '';
+    $chunks = [];
+
     foreach ($anniversaries as $person) {
-        $name = trim((string)($person['name'] ?? 'Anonymous'));
-        $location = trim((string)($person['location'] ?? ''));
-        $displayName = $location !== '' ? "{$name} ({$location})" : $name;
+        $name = wa_escape((string)($person['name'] ?? 'Anonymous'));
+        $location = wa_escape((string)($person['location'] ?? ''));
+        $phone = wa_escape((string)($person['phone'] ?? ''));
 
         $milestones = $person['milestones'] ?? [];
-        $milestoneText = is_array($milestones) && !empty($milestones) ? implode(', ', $milestones) : '—';
+        if (is_array($milestones)) {
+            $milestones = array_values(array_filter(array_map('wa_escape', $milestones), fn($x) => $x !== ''));
+        } else {
+            $milestones = [];
+        }
 
-        $phone = trim((string)($person['phone'] ?? 'Not provided'));
+        $displayName = $location !== '' ? "{$name} ({$location})" : $name;
 
-        $rows .= ''
-            . '<tr>'
-            . '<td style="padding:12px 0; border-bottom:1px solid #eee;">'
-            . '<div style="font-weight:600;">' . e($displayName) . '</div>'
-            . '<div><strong>Milestone(s):</strong> ' . e($milestoneText) . '</div>'
-            . '<div><strong>Phone (WhatsApp):</strong> ' . e($phone) . '</div>'
-            . '</td>'
-            . '</tr>';
+        $lines = [];
+
+        if (empty($milestones)) {
+            $lines[] = "✨ *—*";
+        } else {
+            foreach ($milestones as $m) {
+                $lines[] = "✨ *{$m}*";
+            }
+        }
+
+        $lines[] = "*{$displayName}*";
+
+        if ($phone !== '') {
+            $digits = preg_replace('/\D+/', '', $phone);
+            $wa = $digits !== '' ? "https://wa.me/{$digits}" : $phone;
+            $lines[] = $wa;
+        }
+
+        $chunks[] = implode("\n", $lines);
     }
 
-    return $rows;
+    return implode("\n━━━━━━━━━━━━━━━\n", $chunks);
 }
 
-$anniversaryRowsHtml = buildAnniversaryRows(is_array($anniversaries) ? $anniversaries : []);
+$rowsText = buildWhatsappRows(is_array($anniversaries) ? $anniversaries : []);
 
 $replacements = [
-    '{{FELLOWSHIP_NAME}}' => e($fellowshipName),
-    '{{EMAIL_SUBJECT}}'   => e($emailSubject),
-    '{{ANNIVERSARY_ROWS}}'=> $anniversaryRowsHtml,
+    '{{FELLOWSHIP_NAME}}' => wa_escape($fellowshipName),
+    '{{EMAIL_SUBJECT}}'   => wa_escape($emailSubject),
+    '{{TITLE_DATE}}'      => wa_escape($titleDate),
+    '{{FORM_LINK}}'       => wa_escape($formLink),
+    '{{ANNIVERSARY_ROWS}}'=> $rowsText,
     '{{ANNIVERSARY_COUNT}}'=> (string)count(is_array($anniversaries) ? $anniversaries : []),
 ];
 
-$htmlBody = strtr($templateHtml, $replacements);
+$whatsappText = strtr($templateText, $replacements);
 
-$email = [
-    "to"      => $emailRecipients,
-    "subject" => $emailSubject,
-    "body"    => $htmlBody, // HTML from template
-];
-
-
-
-echo "Email:\n";
-print_r($email);
-return $email;
+header('Content-Type: text/plain; charset=utf-8');
+echo $whatsappText;
+return $whatsappText;

@@ -26,12 +26,12 @@ $configuredMonths = array_filter(array_map('intval', explode(',', $monthsRaw)));
 $configuredYears  = array_filter(array_map('intval', explode(',', $yearsRaw)));
 
 // DEBUG: thresholds and CSV info
-echo "DEBUG in find_anniversaries.php:\n";
-echo "  Hours thresholds:  " . implode(', ', $configuredHours) . "\n";
-echo "  Days thresholds:   " . implode(', ', $configuredDays) . "\n";
-echo "  Months thresholds: " . implode(', ', $configuredMonths) . "\n";
-echo "  Years thresholds:  " . implode(', ', $configuredYears) . "\n";
-echo "  Rows loaded:       " . count($rows) . "\n\n";
+//echo "DEBUG in find_anniversaries.php:\n";
+//echo "  Hours thresholds:  " . implode(', ', $configuredHours) . "\n";
+//echo "  Days thresholds:   " . implode(', ', $configuredDays) . "\n";
+//echo "  Months thresholds: " . implode(', ', $configuredMonths) . "\n";
+//echo "  Years thresholds:  " . implode(', ', $configuredYears) . "\n";
+//echo "  Rows loaded:       " . count($rows) . "\n\n";
 
 // Compare dates only – today at midnight
 $today = isset($testToday) ? clone $testToday : new DateTime('today');
@@ -47,7 +47,6 @@ foreach ($rows as $i => $row) {
     } // skip header
 
     if (count($row) < 9) {
-        echo "Skipping row $i: not enough columns\n";
         continue;
     }
 
@@ -56,14 +55,12 @@ foreach ($rows as $i => $row) {
     [$timestamp, $email, $name, $phone, $sobrietyStartRaw, $gender, $location, $helplineOptIn, $shareAnniv] = $row;
 
     if ($sobrietyStartRaw === '') {
-        echo "Skipping $name: empty sobriety date\n";
         continue;
     }
 
     // Consent check
     $consent = strtolower(trim($shareAnniv));
     if (!in_array($consent, ['yes', 'y', 'true', '1'], true)) {
-        echo "Skipping $name: consent not given\n";
         continue;
     }
 
@@ -73,7 +70,6 @@ foreach ($rows as $i => $row) {
         try {
             $sobrietyDate = new DateTime($sobrietyStartRaw);
         } catch (Exception $e) {
-            echo "Skipping $name: invalid date '$sobrietyStartRaw'\n";
             continue;
         }
     }
@@ -81,7 +77,6 @@ foreach ($rows as $i => $row) {
 
     // Skip future dates
     if ($sobrietyDate > $today) {
-        echo "Skipping $name: sobriety date {$sobrietyDate->format($DATE_FORMAT)} is in future\n";
         continue;
     }
 
@@ -96,7 +91,6 @@ foreach ($rows as $i => $row) {
     foreach ($configuredHours as $h) {
         if ($hoursTotal === $h) {
             $milestonesHit[] = $h . ' hours';
-            echo "$name hit milestone: $h hours\n";
         }
     }
 
@@ -104,7 +98,6 @@ foreach ($rows as $i => $row) {
     foreach ($configuredDays as $d) {
         if ($daysTotal === $d) {
             $milestonesHit[] = $d . ' days';
-            echo "$name hit milestone: $d days\n";
         }
     }
 
@@ -114,9 +107,6 @@ foreach ($rows as $i => $row) {
         $milestoneMonth->setTime(0,0);
         if ($milestoneMonth == $today) {
             $milestonesHit[] = $m . ' months';
-            echo "$name hit milestone: $m months\n";
-        } else {
-            echo "$name did NOT hit $m months milestone (expected {$milestoneMonth->format($DATE_FORMAT)} vs today {$today->format($DATE_FORMAT)})\n";
         }
     }
 
@@ -126,9 +116,6 @@ foreach ($rows as $i => $row) {
         $anniversary->setTime(0,0);
         if ($anniversary == $today) {
             $milestonesHit[] = $y . ' years';
-            echo "$name hit milestone: $y years\n";
-        } else {
-            echo "$name did NOT hit $y years milestone (expected {$anniversary->format($DATE_FORMAT)} vs today {$today->format($DATE_FORMAT)})\n";
         }
     }
 
@@ -144,8 +131,6 @@ foreach ($rows as $i => $row) {
                 'share_anniv'    => $shareAnniv,
                 'milestones'     => $milestonesHit,
         ];
-    } else {
-        echo "$name did not hit any milestone today\n";
     }
 }
 
