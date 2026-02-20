@@ -35,7 +35,14 @@ function buildWhatsappRows(array $anniversaries): string {
     $chunks = [];
 
     foreach ($anniversaries as $person) {
-        $name = wa_escape((string)($person['name'] ?? 'Anonymous'));
+        $rawName = trim((string)($person['name'] ?? ''));
+
+        if ($rawName !== '') {
+            $parts = preg_split('/\s+/', $rawName);
+            $name = wa_escape($parts[0]);
+        } else {
+            $name = 'Anonymous';
+        }
         $location = wa_escape((string)($person['location'] ?? ''));
         $phone = wa_escape((string)($person['phone'] ?? ''));
 
@@ -61,11 +68,23 @@ function buildWhatsappRows(array $anniversaries): string {
         $lines[] = "*{$displayName}*";
 
         if ($phone !== '') {
-            $digits = preg_replace('/\D+/', '', $phone);
-            $wa = $digits !== '' ? "https://wa.me/{$digits}" : $phone;
-            $lines[] = $wa;
-        }
 
+            // remove spaces, +, -, brackets etc
+            $digits = preg_replace('/\D+/', '', $phone);
+
+            // if 10 digit Indian number → add country code
+            if (strlen($digits) === 10) {
+                $digits = '91' . $digits;
+            }
+
+            // create WA link only if 12 digits
+            if (strlen($digits) === 12) {
+                $lines[] = "https://wa.me/{$digits}";
+            } else {
+                // otherwise just show original phone
+                $lines[] = $phone;
+            }
+        }
         $chunks[] = implode("\n", $lines);
     }
 
