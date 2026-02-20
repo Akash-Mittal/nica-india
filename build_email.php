@@ -1,58 +1,73 @@
 <?php
 // build_email.php
 
-// Include the anniversaries data (assuming find_anniversaries.php returns array)
 $anniversaries = include __DIR__ . "/find_anniversaries.php";
 
-// ────────────────────────────────────────────────
-// Read values from .env (via $_ENV)
-$fellowshipName   = $_ENV['FELLOWSHIP_NAME']   ?? 'NICA India Fellowship';
-$emailRecipients  = $_ENV['EMAIL_RECIPIENTS']  ?? 'mail.akash.on@gmail.com,mittal.akash.adam@gmail.com';
-$emailSubject     = $_ENV['EMAIL_SUBJECT']     ?? 'NICA India – Upcoming Sobriety Anniversaries';
+$fellowshipName  = $_ENV['FELLOWSHIP_NAME']  ?? 'NICA India Fellowship';
+$emailRecipients = $_ENV['EMAIL_RECIPIENTS'] ?? 'mail.akash.on@gmail.com,mittal.akash.adam@gmail.com';
+$emailSubject    = $_ENV['EMAIL_SUBJECT']    ?? 'NICA India – Upcoming Sobriety Anniversaries';
 
-// Optional debug (comment out or remove in production)
-echo "DEBUG in build_email.php:\n";
-echo "  Fellowship name: $fellowshipName\n";
-echo "  Recipients:      $emailRecipients\n";
-echo "  Subject:         $emailSubject\n";
-echo "  Found anniversaries: " . count($anniversaries) . "\n\n";
-
-// ────────────────────────────────────────────────
-// Build the plain text body
-if (empty($anniversaries)) {
-    $plainTextBody = "Dear members,\n\n"
-        . "There are currently no sobriety anniversaries matching the configured milestones.\n\n"
-        . "In service and fellowship,\n"
-        . $fellowshipName;
-} else {
-    $plainTextBody = "Dear members,\n\n";
-    $plainTextBody .= "We are pleased to share the details of members whose sobriety milestones "
-        . "fall within the configured time windows.\n\n";
-    $plainTextBody .= "The following members are celebrating important sobriety anniversaries:\n\n";
-
-    foreach ($anniversaries as $person) {
-        $plainTextBody .= "- Name: " . ($person["name"] ?? 'Unknown') . "\n";
-        $plainTextBody .= "  Milestone(s): " . implode(", ", $person["milestones"] ?? []) . "\n";
-        $plainTextBody .= "  Location: " . ($person["location"] ?? 'Not specified') . "\n";
-        $plainTextBody .= "  Phone (WhatsApp): " . ($person["phone"] ?? 'Not provided') . "\n\n";
-    }
-
-    $plainTextBody .= "We invite you to join us in extending warm wishes and support to these members "
-        . "as they mark their sobriety milestones.\n\n";
-    $plainTextBody .= "In service and fellowship,\n";
-    $plainTextBody .= $fellowshipName;
+$templatePath = __DIR__ . "/anniversary_email_Template.html";
+if (!file_exists($templatePath)) {
+    throw new RuntimeException("Email template file not found: {$templatePath}");
+}
+$templateHtml = file_get_contents($templatePath);
+if ($templateHtml === false) {
+    throw new RuntimeException("Unable to read email template file: {$templatePath}");
 }
 
-// ────────────────────────────────────────────────
-// Prepare the email array (same structure as before)
+function e(string $value): string {
+    return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
+function buildAnniversaryRows(array $anniversaries): string {
+    if (empty($anniversaries)) {
+        return '<tr><td style="padding:12px 0;">No sobriety anniversaries match the configured milestones.</td></tr>';
+    }
+
+    $rows = '';
+    foreach ($anniversaries as $person) {
+        $name = trim((string)($person['name'] ?? 'Anonymous'));
+        $location = trim((string)($person['location'] ?? ''));
+        $displayName = $location !== '' ? "{$name} ({$location})" : $name;
+
+        $milestones = $person['milestones'] ?? [];
+        $milestoneText = is_array($milestones) && !empty($milestones) ? implode(', ', $milestones) : '—';
+
+        $phone = trim((string)($person['phone'] ?? 'Not provided'));
+
+        $rows .= ''
+            . '<tr>'
+            . '<td style="padding:12px 0; border-bottom:1px solid #eee;">'
+            . '<div style="font-weight:600;">' . e($displayName) . '</div>'
+            . '<div><strong>Milestone(s):</strong> ' . e($milestoneText) . '</div>'
+            . '<div><strong>Phone (WhatsApp):</strong> ' . e($phone) . '</div>'
+            . '</td>'
+            . '</tr>';
+    }
+
+    return $rows;
+}
+
+$anniversaryRowsHtml = buildAnniversaryRows(is_array($anniversaries) ? $anniversaries : []);
+
+$replacements = [
+    '{{FELLOWSHIP_NAME}}' => e($fellowshipName),
+    '{{EMAIL_SUBJECT}}'   => e($emailSubject),
+    '{{ANNIVERSARY_ROWS}}'=> $anniversaryRowsHtml,
+    '{{ANNIVERSARY_COUNT}}'=> (string)count(is_array($anniversaries) ? $anniversaries : []),
+];
+
+$htmlBody = strtr($templateHtml, $replacements);
+
 $email = [
     "to"      => $emailRecipients,
     "subject" => $emailSubject,
-    "body"    => $plainTextBody,  // plain text – easy to copy into WhatsApp
+    "body"    => $htmlBody, // HTML from template
 ];
 
-// Optional: more debug (remove later)
-echo "Generated email body preview (first 200 chars):\n";
-echo substr($plainTextBody, 0, 200) . "...\n\n";
 
+
+echo "Email:\n";
+print_r($email);
 return $email;
