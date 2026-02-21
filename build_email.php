@@ -1,6 +1,7 @@
 <?php
 
 $anniversaries = include __DIR__ . "/find_anniversaries.php";
+$helpByLocation = include __DIR__ . "/fetch_help_line.php";
 
 $fellowshipName  = $_ENV['FELLOWSHIP_NAME']  ?? 'Nicotine Anonymous India';
 $websiteUrl      = $_ENV['WEBSITE_URL']      ?? 'https://nicaindia.wordpress.com';
@@ -28,7 +29,13 @@ function wa_escape(string $value): string {
     return trim($value);
 }
 
-function buildWhatsappRows(array $anniversaries): string {
+function normalize_wa_digits(string $phone): string {
+    $digits = preg_replace('/\D+/', '', $phone);
+    if (strlen($digits) === 10) $digits = '91' . $digits;
+    return $digits;
+}
+
+function buildAnniversaryRows(array $anniversaries): string {
 
     if (empty($anniversaries)) {
         return "No sobriety anniversaries found.\n━━━━━━━━━━━━━━━━━━";
@@ -43,48 +50,28 @@ function buildWhatsappRows(array $anniversaries): string {
         $phone = wa_escape((string)($person['phone'] ?? ''));
 
         $milestones = $person['milestones'] ?? [];
-
-        if (!is_array($milestones)) {
-            $milestones = [];
-        }
+        if (!is_array($milestones)) $milestones = [];
 
         foreach ($milestones as $milestone) {
 
-            $milestone = wa_escape($milestone);
+            $milestone = wa_escape((string)$milestone);
 
-            $displayName = $location !== ''
-                ? "{$name} ({$location})"
-                : $name;
+            $displayName = $location !== '' ? "{$name} ({$location})" : $name;
 
             $lines = [];
-
-            // Milestone line
             $lines[] = "✨ {$milestone}";
-
-            // Name line
             $lines[] = $displayName;
 
-            // WhatsApp link with congratulation text
             if ($phone !== '') {
-
-                $digits = preg_replace('/\D+/', '', $phone);
-
-                if (strlen($digits) === 10) {
-                    $digits = '91' . $digits;
-                }
+                $digits = normalize_wa_digits($phone);
 
                 if (strlen($digits) === 12) {
-
-                    $message = urlencode(
-                        "Congratulations {$name} on your {$milestone} milestone! Proud of you. Keep going — one day at a time 🙌"
-                    );
-
+                    $message = urlencode("Congratulations {$name} on your {$milestone} milestone! Proud of you. Keep going — one day at a time 🙌");
                     $lines[] = "💬 https://wa.me/{$digits}?text={$message}";
                 }
             }
 
             $lines[] = "━━━━━━━━━━━━━━━━━━";
-
             $chunks[] = implode("\n", $lines);
         }
     }
@@ -92,7 +79,59 @@ function buildWhatsappRows(array $anniversaries): string {
     return implode("\n", $chunks);
 }
 
-$rowsText = buildWhatsappRows(is_array($anniversaries) ? $anniversaries : []);
+function buildHelplineRows(array $helpByLocation): string {
+
+    if (empty($helpByLocation)) {
+        return "No helpline volunteers found.";
+    }
+
+    $chunks = [];
+
+    foreach ($helpByLocation as $location => $people) {
+
+        $location = wa_escape((string)$location);
+        if ($location === '') $location = 'Unknown';
+
+        $lines = [];
+        $lines[] = "📍 {$location}";
+
+        if (!is_array($people) || empty($people)) {
+            $lines[] = "No contacts available.";
+            $lines[] = "━━━━━━━━━━━━━━━━━━";
+            $chunks[] = implode("\n", $lines);
+            continue;
+        }
+
+        foreach ($people as $p) {
+            $name = wa_escape((string)($p['name'] ?? 'Anonymous'));
+            $phone = wa_escape((string)($p['phone'] ?? ''));
+            $duration = wa_escape((string)($p['sobriety_duration'] ?? ''));
+
+            $line = "👤 {$name}";
+            if ($duration !== '') $line .= " — {$duration}";
+            $lines[] = $line;
+
+            if ($phone !== '') {
+                $digits = normalize_wa_digits($phone);
+                if (strlen($digits) === 12) {
+                    $lines[] = "💬 https://wa.me/{$digits}";
+                } else {
+                    $lines[] = "📞 {$phone}";
+                }
+            }
+
+            $lines[] = "";
+        }
+
+        $lines[] = "━━━━━━━━━━━━━━━━━━";
+        $chunks[] = trim(implode("\n", $lines));
+    }
+
+    return implode("\n", $chunks);
+}
+
+$anniversaryRowsText = buildAnniversaryRows(is_array($anniversaries) ? $anniversaries : []);
+$helplineRowsText = buildHelplineRows(is_array($helpByLocation) ? $helpByLocation : []);
 
 $replacements = [
     '{{FELLOWSHIP_NAME}}' => wa_escape($fellowshipName),
@@ -102,13 +141,13 @@ $replacements = [
     '{{BUSINESS_MEETING_LINK}}' => wa_escape($businessLink),
     '{{LITERATURE_LINK}}' => wa_escape($literatureLink),
     '{{TRADITION_LINK}}'  => wa_escape($traditionLink),
-    '{{ANNIVERSARY_ROWS}}'=> $rowsText
+    '{{ANNIVERSARY_ROWS}}'=> $anniversaryRowsText,
+    '{{HELPLINE_ROWS}}'   => $helplineRowsText,
 ];
 
 $whatsappText = strtr($templateText, $replacements);
 
 header('Content-Type: text/plain; charset=utf-8');
-
 echo $whatsappText;
 
 return $whatsappText;

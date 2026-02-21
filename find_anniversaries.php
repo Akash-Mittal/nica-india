@@ -4,7 +4,6 @@
 $DATE_FORMAT = 'm/d/Y';
 
 
-
 // If $rows is not already defined (e.g., by a test script), fetch it
 if (!isset($rows)) {
     $rows = include __DIR__ . '/fetch_csv.php';
