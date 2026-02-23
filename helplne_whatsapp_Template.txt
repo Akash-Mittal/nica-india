@@ -1,18 +1,16 @@
-{{FELLOWSHIP_NAME}}
-{{WEBSITE_URL}}
-📅 Sobriety Anniversaries – {{TITLE_DATE}}
+*{{FELLOWSHIP_NAME}}*  |  _{{WEBSITE_URL}}_
+
+*📅 SOBRIETY ANNIVERSARIES* — _{{TITLE_DATE}}_
 ━━━━━━━━━━━━━━━━━━
 {{ANNIVERSARY_ROWS}}
 ━━━━━━━━━━━━━━━━━━
-🔥 Proud of you all!
-Please share your hope, strength & experience.
-━━━━━━━━━━━━━━━━━━
-📝 Add your anniversary:
-{{FORM_LINK}}
-📌 Business Meeting:
-{{BUSINESS_MEETING_LINK}}
-📚 NICA Literature:
-{{LITERATURE_LINK}}
 
-7th Tradition Offering:
-{{TRADITION_LINK}}
+🔥 *We’re proud of you!*
+Please share your _hope, strength & experience_.
+━━━━━━━━━━━━━━━━━━
+
+*Quick Links*
+• *Add your anniversary:* {{FORM_LINK}}
+• *Business Meeting:* {{BUSINESS_MEETING_LINK}}
+• *NICA Literature:* {{LITERATURE_LINK}}
+• *7th Tradition Offering:* {{TRADITION_LINK}}

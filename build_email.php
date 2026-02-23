@@ -46,6 +46,11 @@ function buildAnniversaryRows(array $anniversaries): string {
     foreach ($anniversaries as $person) {
 
         $name = trim((string)($person['name'] ?? 'Anonymous'));
+        $anonymousName = '';
+        if (!empty($name)) {
+            $parts = explode(' ', trim($name));
+            $anonymousName = $parts[0] ?? '';
+        }
         $location = wa_escape((string)($person['location'] ?? ''));
         $phone = wa_escape((string)($person['phone'] ?? ''));
 
@@ -56,7 +61,7 @@ function buildAnniversaryRows(array $anniversaries): string {
 
             $milestone = wa_escape((string)$milestone);
 
-            $displayName = $location !== '' ? "{$name} ({$location})" : $name;
+            $displayName = $location !== '' ? "{$anonymousName} ({$location})" : $anonymousName;
 
             $lines = [];
             $lines[] = "✨ {$milestone}";
@@ -66,7 +71,7 @@ function buildAnniversaryRows(array $anniversaries): string {
                 $digits = normalize_wa_digits($phone);
 
                 if (strlen($digits) === 12) {
-                    $message = urlencode("Congratulations {$name} on your {$milestone} milestone! Proud of you. Keep going — one day at a time 🙌");
+                    $message = urlencode("Congratulations {$anonymousName} on your {$milestone} milestone! Proud of you. Keep going — one day at a time 🙌");
                     $lines[] = "💬 https://wa.me/{$digits}?text={$message}";
                 }
             }
