@@ -1,27 +1,20 @@
 *{{FELLOWSHIP_NAME}}*
 _{{WEBSITE_URL}}_
-
 📅 *Sobriety Anniversaries — {{TITLE_DATE}}*
 ━━━━━━━━━━━━━━━━━━
 {{ANNIVERSARY_ROWS}}
 ━━━━━━━━━━━━━━━━━━
-
 🔥 *Proud of you all!*
 Please share your _hope, strength & experience_.
 ━━━━━━━━━━━━━━━━━━
-
 📝 *Add your anniversary:*
 {{FORM_LINK}}
-
 📌 *Business Meeting:*
 {{BUSINESS_MEETING_LINK}}
-
 📚 *NICA Literature:*
 {{LITERATURE_LINK}}
-
 🙏 *7th Tradition Offering:*
 {{TRADITION_LINK}}
-
 ━━━━━━━━━━━━━━━━━━
 📞 *Helpline (Area-wise | Top 2 per state)*
 ━━━━━━━━━━━━━━━━━━
