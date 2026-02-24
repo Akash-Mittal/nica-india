@@ -80,3 +80,14 @@
     line-height: 1.6;
     white-space: pre-wrap;
 }
+
+.preview-box {
+    white-space: normal;
+}
+
+#copyBtn {
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(0,0,0,.15);
+    cursor: pointer;
+}
