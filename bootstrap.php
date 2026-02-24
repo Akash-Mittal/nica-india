@@ -10,11 +10,11 @@ $env = getenv('APP_ENV') ?: 'default';
 // Select env file based on APP_ENV
 switch ($env) {
     case 'test':
-        $envFile = '.env.test';
+        $envFile = '.test.env';
         break;
 
     case 'prod':
-        $envFile = file_exists(__DIR__ . '/.env.prod') ? '.env.prod' : '.env';
+        $envFile = file_exists(__DIR__ . '/.prod.env') ? '.prod.env' : '.env';
         break;
 
     default:
