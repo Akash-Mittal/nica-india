@@ -134,9 +134,9 @@ $anniversaryRowsText = buildAnniversaryRows(is_array($anniversaries) ? $annivers
 $helplineRowsText = buildHelplineRows(is_array($helpByLocation) ? $helpByLocation : []);
 
 $replacements = [
-        'TITLE_DATE'       => wa_escape($titleDate),
-        'ANNIVERSARY_ROWS' => $anniversaryRowsText,
-        'HELPLINE_ROWS'    => $helplineRowsText,
+        '{{TITLE_DATE}}'       => wa_escape($titleDate),
+        '{{ANNIVERSARY_ROWS}}' => $anniversaryRowsText,
+        '{{HELPLINE_ROWS}}'    => $helplineRowsText,
 ];
 $whatsappText = strtr($templateText, $replacements);
 
