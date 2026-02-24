@@ -141,6 +141,22 @@ $replacements = [
 
 $whatsappText = strtr($templateText, $replacements);
 
-header('Content-Type: text/plain; charset=utf-8');
-echo $whatsappText;
+header('Content-Type: text/html; charset=utf-8');
+?>
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>WhatsApp Message Preview</title>
+        <link rel="stylesheet" href="/style.css">
+    </head>
+    <body>
+
+    <div class="whatsapp-preview">
+        <?php echo nl2br(htmlspecialchars($whatsappText, ENT_QUOTES, 'UTF-8')); ?>
+    </div>
+
+    </body>
+    </html>
+<?php
 return $whatsappText;
