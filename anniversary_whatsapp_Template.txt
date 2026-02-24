@@ -1,8 +1,8 @@
-*{{Nicotine Anonymous India Online}}*
-_{{https://nicaindia.wordpress.com}}_
-📅 *Sobriety Anniversaries — {{TITLE_DATE}}*
+*Nicotine Anonymous India Online*
+_https://nicaindia.wordpress.com_
+📅 *Sobriety Anniversaries — TITLE_DATE*
 ━━━━━━━━━━━━━━━━━━
-{{ANNIVERSARY_ROWS}}
+ANNIVERSARY_ROWS
 ━━━━━━━━━━━━━━━━━━
 🔥 *Proud of you all!*
 Please share your _hope, strength & experience_.
@@ -20,4 +20,4 @@ https://nicaindia.wordpress.com/2026/02/18/contributing-under-7th-tradition-to-n
 ━━━━━━━━━━━━━━━━━━
 📞 *Helpline (State-wise | Top 2 per state)*
 ━━━━━━━━━━━━━━━━━━
-{{HELPLINE_ROWS}}
+HELPLINE_ROWS
