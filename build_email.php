@@ -153,6 +153,9 @@ $replacements = [
 $whatsappText = strtr($templateText, $replacements);
 
 header('Content-Type: text/html; charset=utf-8');
+
+$raw = $whatsappText;
+$safeHtml = nl2br(htmlspecialchars($whatsappText, ENT_QUOTES, 'UTF-8'));
 ?>
     <!DOCTYPE html>
     <html>
@@ -162,9 +165,51 @@ header('Content-Type: text/html; charset=utf-8');
         <link rel="stylesheet" href="/style.css">
     </head>
     <body>
+
     <div class="whatsapp-preview">
-        <?php echo nl2br(htmlspecialchars($whatsappText, ENT_QUOTES, 'UTF-8')); ?>
+        <div style="display:flex; gap:12px; align-items:center; margin-bottom:12px;">
+            <button id="copyBtn" type="button">Copy WhatsApp Text</button>
+            <span id="copyStatus" style="opacity:.7;"></span>
+        </div>
+
+        <div class="preview-box">
+            <?php echo $safeHtml; ?>
+        </div>
+
+        <textarea id="rawText" style="position:absolute; left:-9999px; top:-9999px;"><?php
+            echo htmlspecialchars($raw, ENT_QUOTES, 'UTF-8');
+            ?></textarea>
     </div>
+
+    <script>
+        const btn = document.getElementById('copyBtn');
+        const status = document.getElementById('copyStatus');
+        const raw = document.getElementById('rawText');
+
+        btn.addEventListener('click', async () => {
+            const text = raw.value;
+
+            try {
+                await navigator.clipboard.writeText(text);
+                status.textContent = 'Copied!';
+                setTimeout(() => status.textContent = '', 1200);
+                return;
+            } catch (e) {}
+
+            raw.style.display = 'block';
+            raw.focus();
+            raw.select();
+            try {
+                document.execCommand('copy');
+                status.textContent = 'Copied!';
+                setTimeout(() => status.textContent = '', 1200);
+            } catch (e) {
+                status.textContent = 'Copy failed — select & copy manually.';
+            }
+            raw.style.display = '';
+        });
+    </script>
+
     </body>
     </html>
 <?php
