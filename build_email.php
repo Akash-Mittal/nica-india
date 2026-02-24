@@ -3,7 +3,7 @@
 $anniversaries = include __DIR__ . "/find_anniversaries.php";
 $helpByLocation = include __DIR__ . "/fetch_help_line.php";
 
-$titleDate       = $_ENV['TITLE_DATE']       ?? date('d M Y');
+$titleDate = $_ENV['TITLE_DATE'] ?? date('d M Y');
 
 $templatePath = __DIR__ . "/anniversary_whatsapp_Template.txt";
 
@@ -27,9 +27,22 @@ function wa_friendly_url(string $phone): ?string {
     $apiUrl = "https://mittal.blog/nica-india/services/whatsapp/URLService.php?mobile=" . urlencode($phone);
     $response = @file_get_contents($apiUrl);
     if ($response === false) return null;
+
     $data = json_decode($response, true);
     if (!is_array($data) || empty($data['success']) || empty($data['wa_url'])) return null;
+
     return (string)$data['wa_url'];
+}
+
+function anonymous_name(string $name): string {
+    $apiUrl = "https://mittal.blog/nica-india/services/anonymous/NamingService.php?name=" . urlencode($name);
+    $response = @file_get_contents($apiUrl);
+    if ($response === false) return 'Anonymous';
+
+    $data = json_decode($response, true);
+    if (!is_array($data) || empty($data['success']) || empty($data['anonymous_name'])) return 'Anonymous';
+
+    return (string)$data['anonymous_name'];
 }
 
 function buildAnniversaryRows(array $anniversaries): string {
@@ -42,12 +55,8 @@ function buildAnniversaryRows(array $anniversaries): string {
 
     foreach ($anniversaries as $person) {
 
-        $name = trim((string)($person['name'] ?? 'Anonymous'));
-        $anonymousName = '';
-        if (!empty($name)) {
-            $parts = explode(' ', trim($name));
-            $anonymousName = $parts[0] ?? '';
-        }
+        $name = wa_escape((string)($person['name'] ?? 'Anonymous'));
+        $anonymousName = anonymous_name($name);
 
         $location = wa_escape((string)($person['location'] ?? ''));
         $phone = wa_escape((string)($person['phone'] ?? ''));
@@ -104,10 +113,12 @@ function buildHelplineRows(array $helpByLocation): string {
 
         foreach ($people as $p) {
             $name = wa_escape((string)($p['name'] ?? 'Anonymous'));
+            $anon = anonymous_name($name);
+
             $phone = wa_escape((string)($p['phone'] ?? ''));
             $duration = wa_escape((string)($p['sobriety_duration'] ?? ''));
 
-            $line = "👤 {$name}";
+            $line = "👤 {$anon}";
             if ($duration !== '') $line .= " — {$duration}";
             $lines[] = $line;
 
@@ -138,6 +149,7 @@ $replacements = [
         '{{ANNIVERSARY_ROWS}}' => $anniversaryRowsText,
         '{{HELPLINE_ROWS}}'    => $helplineRowsText,
 ];
+
 $whatsappText = strtr($templateText, $replacements);
 
 header('Content-Type: text/html; charset=utf-8');
@@ -150,11 +162,9 @@ header('Content-Type: text/html; charset=utf-8');
         <link rel="stylesheet" href="/style.css">
     </head>
     <body>
-
     <div class="whatsapp-preview">
         <?php echo nl2br(htmlspecialchars($whatsappText, ENT_QUOTES, 'UTF-8')); ?>
     </div>
-
     </body>
     </html>
 <?php
