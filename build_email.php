@@ -24,7 +24,7 @@ function wa_escape(string $value): string {
 }
 
 function wa_friendly_url(string $phone): ?string {
-    $apiUrl = "https://mittal.blog/nica-india/services/whatsapp/URLService.php?mobile=" . urlencode($phone);
+    $apiUrl = "https://www.mittal.blog/nica-india/services/whatsapp/URLService.php?mobile=".urlencode($phone);
     $response = @file_get_contents($apiUrl);
     if ($response === false) return null;
     $data = json_decode($response, true);
