@@ -3,12 +3,6 @@
 $anniversaries = include __DIR__ . "/find_anniversaries.php";
 $helpByLocation = include __DIR__ . "/fetch_help_line.php";
 
-$fellowshipName  = $_ENV['FELLOWSHIP_NAME']  ?? 'Nicotine Anonymous India';
-$websiteUrl      = $_ENV['WEBSITE_URL']      ?? 'https://nicaindia.wordpress.com';
-$formLink        = $_ENV['FORM_LINK']        ?? 'https://forms.gle/vNE9g1igyuvV38Pk8';
-$businessLink    = $_ENV['BUSINESS_MEETING_LINK'] ?? 'https://nicaindia.wordpress.com/2026/02/13/agenda-items-for-next-business-meeting/';
-$literatureLink  = $_ENV['LITERATURE_LINK']  ?? 'https://nicaindia.wordpress.com/downloads/';
-$traditionLink   = $_ENV['TRADITION_LINK']   ?? 'https://nicaindia.wordpress.com/2026/02/18/contributing-under-7th-tradition-to-nica-india-online/';
 $titleDate       = $_ENV['TITLE_DATE']       ?? date('d M Y');
 
 $templatePath = __DIR__ . "/anniversary_whatsapp_Template.txt";
@@ -29,10 +23,13 @@ function wa_escape(string $value): string {
     return trim($value);
 }
 
-function normalize_wa_digits(string $phone): string {
-    $digits = preg_replace('/\D+/', '', $phone);
-    if (strlen($digits) === 10) $digits = '91' . $digits;
-    return $digits;
+function wa_friendly_url(string $phone): ?string {
+    $apiUrl = "https://mittal.blog/nica-india/services/whatsapp/URLService.php?mobile=" . urlencode($phone);
+    $response = @file_get_contents($apiUrl);
+    if ($response === false) return null;
+    $data = json_decode($response, true);
+    if (!is_array($data) || empty($data['success']) || empty($data['wa_url'])) return null;
+    return (string)$data['wa_url'];
 }
 
 function buildAnniversaryRows(array $anniversaries): string {
@@ -51,6 +48,7 @@ function buildAnniversaryRows(array $anniversaries): string {
             $parts = explode(' ', trim($name));
             $anonymousName = $parts[0] ?? '';
         }
+
         $location = wa_escape((string)($person['location'] ?? ''));
         $phone = wa_escape((string)($person['phone'] ?? ''));
 
@@ -60,7 +58,6 @@ function buildAnniversaryRows(array $anniversaries): string {
         foreach ($milestones as $milestone) {
 
             $milestone = wa_escape((string)$milestone);
-
             $displayName = $location !== '' ? "{$anonymousName} ({$location})" : $anonymousName;
 
             $lines = [];
@@ -68,11 +65,9 @@ function buildAnniversaryRows(array $anniversaries): string {
             $lines[] = $displayName;
 
             if ($phone !== '') {
-                $digits = normalize_wa_digits($phone);
-
-                if (strlen($digits) === 12) {
-                    $message = urlencode("Congratulations {$anonymousName} on your {$milestone} milestone! Proud of you. Keep going — one day at a time 🙌");
-                    $lines[] = "💬 https://wa.me/{$digits}?text={$message}";
+                $wa = wa_friendly_url($phone);
+                if ($wa) {
+                    $lines[] = "💬 {$wa}";
                 }
             }
 
@@ -117,9 +112,9 @@ function buildHelplineRows(array $helpByLocation): string {
             $lines[] = $line;
 
             if ($phone !== '') {
-                $digits = normalize_wa_digits($phone);
-                if (strlen($digits) === 12) {
-                    $lines[] = "💬 https://wa.me/{$digits}";
+                $wa = wa_friendly_url($phone);
+                if ($wa) {
+                    $lines[] = "💬 {$wa}";
                 } else {
                     $lines[] = "📞 {$phone}";
                 }
@@ -139,13 +134,7 @@ $anniversaryRowsText = buildAnniversaryRows(is_array($anniversaries) ? $annivers
 $helplineRowsText = buildHelplineRows(is_array($helpByLocation) ? $helpByLocation : []);
 
 $replacements = [
-    '{{FELLOWSHIP_NAME}}' => wa_escape($fellowshipName),
-    '{{WEBSITE_URL}}'     => wa_escape($websiteUrl),
     '{{TITLE_DATE}}'      => wa_escape($titleDate),
-    '{{FORM_LINK}}'       => wa_escape($formLink),
-    '{{BUSINESS_MEETING_LINK}}' => wa_escape($businessLink),
-    '{{LITERATURE_LINK}}' => wa_escape($literatureLink),
-    '{{TRADITION_LINK}}'  => wa_escape($traditionLink),
     '{{ANNIVERSARY_ROWS}}'=> $anniversaryRowsText,
     '{{HELPLINE_ROWS}}'   => $helplineRowsText,
 ];
@@ -154,5 +143,4 @@ $whatsappText = strtr($templateText, $replacements);
 
 header('Content-Type: text/plain; charset=utf-8');
 echo $whatsappText;
-
 return $whatsappText;

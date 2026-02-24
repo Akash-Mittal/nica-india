@@ -1,5 +1,5 @@
-*{{FELLOWSHIP_NAME}}*
-_{{WEBSITE_URL}}_
+*{{Nicotine Anonymous India Online}}*
+_{{https://nicaindia.wordpress.com}}_
 📅 *Sobriety Anniversaries — {{TITLE_DATE}}*
 ━━━━━━━━━━━━━━━━━━
 {{ANNIVERSARY_ROWS}}
