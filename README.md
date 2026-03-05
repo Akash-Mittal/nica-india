@@ -1,8 +1,9 @@
-[services.mittal.blog/anonymous/nictoine/literature/promises - default english and format json 
+- default english and format json
+[services.mittal.blog/anonymous/nictoine/literature/promises  
 services.mittal.blog/anonymous/nictoine/literature/promises?lan=en&format=json
 services.mittal.blog/anonymous/nictoine/literature/promises?lan=en&format=html
 services.mittal.blog/anonymous/nictoine/literature/promises?lan=en&format=rich-text
-services.mittal.blog/anonymous/nictoine/literature/promises?lan=en&format=whats-app-friendly]()
+services.mittal.blog/anonymous/nictoine/literature/promises?lan=en&format=whats-app-friendly
 
 services.mittal.blog/anonymous/nictoine/literature/steps
 services.mittal.blog/anonymous/nictoine/literature/traditions

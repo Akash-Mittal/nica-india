@@ -1,216 +1,167 @@
 <?php
+// whatsapp_anniversary_message.php
 
+// Load anniversaries (from your latest find_anniversaries.php)
 $anniversaries = include __DIR__ . "/find_anniversaries.php";
-$helpByLocation = include __DIR__ . "/fetch_help_line.php";
 
+// Optional: override date if needed (or use env)
 $titleDate = $_ENV['TITLE_DATE'] ?? date('d M Y');
 
+// Path to your template file
 $templatePath = __DIR__ . "/anniversary_whatsapp_Template.txt";
 
 if (!file_exists($templatePath)) {
-    throw new RuntimeException("WhatsApp template file not found: {$templatePath}");
+    die("WhatsApp template file not found: " . htmlspecialchars($templatePath));
 }
 
 $templateText = file_get_contents($templatePath);
-
 if ($templateText === false) {
-    throw new RuntimeException("Unable to read WhatsApp template file: {$templatePath}");
+    die("Unable to read WhatsApp template file: " . htmlspecialchars($templatePath));
 }
 
+// ────────────────────────────────────────────────
+// Helper: clean text for WhatsApp formatting
+// ────────────────────────────────────────────────
 function wa_escape(string $value): string {
     $value = str_replace(["\r\n", "\r"], "\n", $value);
     $value = preg_replace("/[ \t]+/", " ", $value);
     return trim($value);
 }
 
-function wa_friendly_url(string $phone): ?string {
-    $apiUrl = "https://mittal.blog/nica-india/services/whatsapp/URLService.php?mobile=" . urlencode($phone);
-    $response = @file_get_contents($apiUrl);
-    if ($response === false) return null;
-
-    $data = json_decode($response, true);
-    if (!is_array($data) || empty($data['success']) || empty($data['wa_url'])) return null;
-
-    return (string)$data['wa_url'];
-}
-
-function anonymous_name(string $name): string {
-    $apiUrl = "https://mittal.blog/nica-india/services/anonymous/NamingService.php?name=" . urlencode($name);
-    $response = @file_get_contents($apiUrl);
-    if ($response === false) return 'Anonymous';
-
-    $data = json_decode($response, true);
-    if (!is_array($data) || empty($data['success']) || empty($data['anonymous_name'])) return 'Anonymous';
-
-    return (string)$data['anonymous_name'];
-}
-
+// ────────────────────────────────────────────────
+// Build the anniversary section
+// ────────────────────────────────────────────────
 function buildAnniversaryRows(array $anniversaries): string {
-
     if (empty($anniversaries)) {
-        return "No sobriety anniversaries found.\n━━━━━━━━━━━━━━━━━━";
+        return "No sobriety anniversaries found today.\n━━━━━━━━━━━━━━━━━━";
     }
 
     $chunks = [];
 
     foreach ($anniversaries as $person) {
+        $milestone   = wa_escape($person['milestone']         ?? '');
+        $name        = wa_escape($person['anonymous_name']    ?? 'Anonymous');
+        $wa_chat     = trim($person['whatsapp_url']           ?? '');
+        $wa_congrats = trim($person['whatsapp_congrats']      ?? '');
 
-        $name = wa_escape((string)($person['name'] ?? 'Anonymous'));
-        $anonymousName = anonymous_name($name);
-
-        $location = wa_escape((string)($person['location'] ?? ''));
-        $phone = wa_escape((string)($person['phone'] ?? ''));
-
-        $milestones = $person['milestones'] ?? [];
-        if (!is_array($milestones)) $milestones = [];
-
-        foreach ($milestones as $milestone) {
-
-            $milestone = wa_escape((string)$milestone);
-            $displayName = $location !== '' ? "{$anonymousName} ({$location})" : $anonymousName;
-
-            $lines = [];
-            $lines[] = "✨ {$milestone}";
-            $lines[] = $displayName;
-
-            if ($phone !== '') {
-                $wa = wa_friendly_url($phone);
-                if ($wa) {
-                    $lines[] = "💬 {$wa}";
-                }
-            }
-
-            $lines[] = "━━━━━━━━━━━━━━━━━━";
-            $chunks[] = implode("\n", $lines);
-        }
-    }
-
-    return implode("\n", $chunks);
-}
-
-function buildHelplineRows(array $helpByLocation): string {
-
-    if (empty($helpByLocation)) {
-        return "No helpline volunteers found.";
-    }
-
-    $chunks = [];
-
-    foreach ($helpByLocation as $location => $people) {
-
-        $location = wa_escape((string)$location);
-        if ($location === '') $location = 'Unknown';
-
-        $lines = [];
-        $lines[] = "📍 {$location}";
-
-        if (!is_array($people) || empty($people)) {
-            $lines[] = "No contacts available.";
-            $lines[] = "━━━━━━━━━━━━━━━━━━";
-            $chunks[] = implode("\n", $lines);
+        if (empty($milestone) || empty($name)) {
             continue;
         }
 
-        foreach ($people as $p) {
-            $name = wa_escape((string)($p['name'] ?? 'Anonymous'));
-            $anon = anonymous_name($name);
+        $lines = [];
+        $lines[] = "✨ {$milestone}";
+        $lines[] = $name;
 
-            $phone = wa_escape((string)($p['phone'] ?? ''));
-            $duration = wa_escape((string)($p['sobriety_duration'] ?? ''));
+        if ($wa_chat) {
+            $lines[] = "💬 Chat: {$wa_chat}";
+        }
 
-            $line = "👤 {$anon}";
-            if ($duration !== '') $line .= " — {$duration}";
-            $lines[] = $line;
-
-            if ($phone !== '') {
-                $wa = wa_friendly_url($phone);
-                if ($wa) {
-                    $lines[] = "💬 {$wa}";
-                } else {
-                    $lines[] = "📞 {$phone}";
-                }
-            }
-
-            $lines[] = "";
+        if ($wa_congrats) {
+            $lines[] = "🎉 Congrats: {$wa_congrats}";
         }
 
         $lines[] = "━━━━━━━━━━━━━━━━━━";
-        $chunks[] = trim(implode("\n", $lines));
+        $chunks[] = implode("\n", $lines);
     }
 
     return implode("\n", $chunks);
 }
 
+// Generate content
 $anniversaryRowsText = buildAnniversaryRows(is_array($anniversaries) ? $anniversaries : []);
-$helplineRowsText = buildHelplineRows(is_array($helpByLocation) ? $helpByLocation : []);
 
 $replacements = [
-        '{{TITLE_DATE}}'       => wa_escape($titleDate),
-        '{{ANNIVERSARY_ROWS}}' => $anniversaryRowsText,
-        '{{HELPLINE_ROWS}}'    => $helplineRowsText,
+    '{{TITLE_DATE}}'       => wa_escape($titleDate),
+    '{{ANNIVERSARY_ROWS}}' => $anniversaryRowsText,
+    // If your template still has {{HELPLINE_ROWS}}, it will be replaced with empty string
+    '{{HELPLINE_ROWS}}'    => '',
 ];
 
 $whatsappText = strtr($templateText, $replacements);
 
+// ────────────────────────────────────────────────
+// Browser preview + copy button
+// ────────────────────────────────────────────────
 header('Content-Type: text/html; charset=utf-8');
-
-$raw = $whatsappText;
 $safeHtml = nl2br(htmlspecialchars($whatsappText, ENT_QUOTES, 'UTF-8'));
 ?>
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>WhatsApp Message Preview</title>
-        <link rel="stylesheet" href="/style.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>WhatsApp Anniversary Message</title>
+        <link rel="stylesheet" href="style.css">
+        <style>
+            .preview-box {
+                background: #f0f2f5;
+                padding: 20px;
+                border-radius: 10px;
+                white-space: pre-wrap;
+                font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+                line-height: 1.6;
+                max-width: 600px;
+                margin: 20px auto;
+            }
+            .copy-area {
+                text-align: center;
+                margin: 20px 0;
+            }
+            button {
+                padding: 10px 20px;
+                font-size: 16px;
+                background: #25D366;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+            }
+            button:hover { background: #128C7E; }
+        </style>
     </head>
     <body>
 
-    <div class="whatsapp-preview">
-        <div style="display:flex; gap:12px; align-items:center; margin-bottom:12px;">
-            <button id="copyBtn" type="button">Copy WhatsApp Text</button>
-            <span id="copyStatus" style="opacity:.7;"></span>
+    <div class="container">
+        <h2>WhatsApp Message Preview (<?= htmlspecialchars($titleDate) ?>)</h2>
+
+        <div class="copy-area">
+            <button id="copyBtn">Copy to Clipboard</button>
+            <span id="copyStatus" style="margin-left:15px; color:#555;"></span>
         </div>
 
         <div class="preview-box">
-            <?php echo $safeHtml; ?>
+            <?= $safeHtml ?>
         </div>
 
-        <textarea id="rawText" style="position:absolute; left:-9999px; top:-9999px;"><?php
-            echo htmlspecialchars($raw, ENT_QUOTES, 'UTF-8');
-            ?></textarea>
+        <textarea id="rawText" style="position:absolute; left:-9999px;"><?= htmlspecialchars($whatsappText, ENT_QUOTES, 'UTF-8') ?></textarea>
     </div>
 
     <script>
-        const btn = document.getElementById('copyBtn');
+        const copyBtn = document.getElementById('copyBtn');
         const status = document.getElementById('copyStatus');
         const raw = document.getElementById('rawText');
 
-        btn.addEventListener('click', async () => {
-            const text = raw.value;
-
+        copyBtn.addEventListener('click', async () => {
             try {
-                await navigator.clipboard.writeText(text);
+                await navigator.clipboard.writeText(raw.value);
                 status.textContent = 'Copied!';
-                setTimeout(() => status.textContent = '', 1200);
-                return;
-            } catch (e) {}
-
-            raw.style.display = 'block';
-            raw.focus();
-            raw.select();
-            try {
-                document.execCommand('copy');
-                status.textContent = 'Copied!';
-                setTimeout(() => status.textContent = '', 1200);
-            } catch (e) {
-                status.textContent = 'Copy failed — select & copy manually.';
+                setTimeout(() => status.textContent = '', 2000);
+            } catch (err) {
+                status.textContent = 'Copy failed — select text manually';
+                raw.style.position = 'static';
+                raw.style.width = '90%';
+                raw.style.height = '300px';
+                raw.style.margin = '20px auto';
+                raw.style.display = 'block';
+                raw.focus();
+                raw.select();
             }
-            raw.style.display = '';
         });
     </script>
 
     </body>
     </html>
+
 <?php
+// If this file is included by another script, return the final message text
 return $whatsappText;

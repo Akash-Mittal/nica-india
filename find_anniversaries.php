@@ -1,105 +1,127 @@
 <?php
-// find_anniversaries.php
+// find_anniversaries_debug.php  ← rename or use as test file
 
-$DATE_FORMAT = 'm/d/Y';
+$today = new DateTime('today');
 
 if (!isset($rows)) {
     $rows = include __DIR__ . '/fetch_csv.php';
 }
 
-date_default_timezone_set('Asia/Kolkata');
+// ── Debug: show what we actually loaded ───────────────────────────────
+echo "<pre>DEBUG - Raw rows count: " . count($rows) . "\n";
+if (!empty($rows)) {
+    echo "First row (should be header): " . implode(" | ", $rows[0] ?? []) . "\n\n";
+    echo "Second row (first data): " . implode(" | ", $rows[1] ?? []) . "\n";
+}
+echo "</pre>";
 
-$hoursRaw  = $_ENV['HOURS']  ?? '';
-$daysRaw   = $_ENV['DAYS']   ?? '';
-$monthsRaw = $_ENV['MONTHS'] ?? '';
-$yearsRaw  = $_ENV['YEARS']  ?? '';
-
-$configuredHours  = array_filter(array_map('intval', explode(',', $hoursRaw)));
-$configuredDays   = array_filter(array_map('intval', explode(',', $daysRaw)));
-$configuredMonths = array_filter(array_map('intval', explode(',', $monthsRaw)));
-$configuredYears  = array_filter(array_map('intval', explode(',', $yearsRaw)));
-
-$today = isset($testToday) ? clone $testToday : new DateTime('today');
-$today->setTime(0, 0);
-
+// Process
 $matches = [];
 
-foreach ($rows as $i => $row) {
-    if ($i === 0) continue;
-    if (!is_array($row) || count($row) < 9) continue;
+if (!empty($rows) && is_array($rows)) {
+    $header = array_shift($rows); // remove header
 
-    $row = array_map('trim', $row);
-    [$timestamp, $email, $name, $phone, $sobrietyStartRaw, $gender, $location, $helplineOptIn, $shareAnniv] = $row;
-
-    if ($sobrietyStartRaw === '') continue;
-
-    $consent = strtolower(trim($shareAnniv));
-    if (!in_array($consent, ['yes', 'y', 'true', '1'], true)) continue;
-
-    $sobrietyDate = DateTime::createFromFormat($DATE_FORMAT, $sobrietyStartRaw);
-    if (!$sobrietyDate) {
-        try {
-            $sobrietyDate = new DateTime($sobrietyStartRaw);
-        } catch (Exception $e) {
+    foreach ($rows as $index => $row) {
+        if (!is_array($row) || count($row) < 5) {
+            echo "<pre>Row $index skipped - too few columns: " . count($row) . "</pre>";
             continue;
         }
-    }
-    $sobrietyDate->setTime(0, 0);
 
-    if ($sobrietyDate > $today) continue;
+        $row = array_map('trim', $row);
 
-    $interval = $sobrietyDate->diff($today);
-    $daysTotal = $interval->days;
-    $hoursTotal = $daysTotal * 24;
+        $milestone    = $row[0] ?? '';
+        $name         = $row[1] ?? '';
+        $whatsapp     = $row[2] ?? '';
+        $congratsLink = $row[3] ?? '';
+        $showRaw      = $row[4] ?? '';
+        $show         = strtolower(trim($showRaw));
 
-    $milestonesHit = [];
+        // More permissive check
+        if (!in_array($show, ['yes', 'y', 'true', '1'], true)) {
+            // echo "<pre>Row $index skipped - SHOW = '$showRaw'</pre>"; // uncomment to see skipped
+            continue;
+        }
 
-    foreach ($configuredHours as $h) {
-        if ($hoursTotal === $h) $milestonesHit[] = $h . ' hours';
-    }
+        if (empty($milestone) || empty($name)) {
+            continue;
+        }
 
-    foreach ($configuredDays as $d) {
-        if ($daysTotal === $d) $milestonesHit[] = $d . ' days';
-    }
-
-    foreach ($configuredMonths as $m) {
-        $milestoneMonth = (clone $sobrietyDate)->modify("+$m months");
-        $milestoneMonth->setTime(0, 0);
-        if ($milestoneMonth == $today) $milestonesHit[] = $m . ' months';
-    }
-
-    foreach ($configuredYears as $y) {
-        $anniversary = (clone $sobrietyDate)->modify("+$y years");
-        $anniversary->setTime(0, 0);
-        if ($anniversary == $today) $milestonesHit[] = $y . ' years';
-    }
-
-    if (!empty($milestonesHit)) {
         $matches[] = [
-            '_sobriety_ts'   => $sobrietyDate->getTimestamp(),
-            'name'           => $name,
-            'email'          => $email,
-            'phone'          => $phone,
-            'sobriety_start' => $sobrietyDate->format($DATE_FORMAT),
-            'gender'         => $gender,
-            'location'       => $location,
-            'helpline_optin' => $helplineOptIn,
-            'share_anniv'    => $shareAnniv,
-            'milestones'     => $milestonesHit,
+            'milestone'         => $milestone,
+            'anonymous_name'    => $name,
+            'whatsapp_url'      => $whatsapp,
+            'whatsapp_congrats' => $congratsLink,
+            'show'              => $showRaw,
         ];
     }
 }
 
-usort($matches, function ($a, $b) {
-    $at = (int)($a['_sobriety_ts'] ?? 0);
-    $bt = (int)($b['_sobriety_ts'] ?? 0);
-    if ($at === $bt) return strcasecmp((string)($a['name'] ?? ''), (string)($b['name'] ?? ''));
-    return $at <=> $bt;
+usort($matches, function($a, $b) {
+    return strcasecmp($a['anonymous_name'], $b['anonymous_name']);
 });
 
-foreach ($matches as &$m) {
-    unset($m['_sobriety_ts']);
+// ── Browser output ───────────────────────────────────────────────────
+if (php_sapi_name() !== 'cli' && !empty($_SERVER['REQUEST_URI'])) {
+    header('Content-Type: text/html; charset=utf-8');
+    ?>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Sobriety Anniversaries - Debug View</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+
+    <div class="container">
+        <h1>Sobriety Anniversaries (All SHOW = Yes) - <?= $today->format('d M Y') ?></h1>
+
+        <?php if (empty($matches)): ?>
+            <p class="no-data">No matching entries found.</p>
+            <p style="color: #c00;">Check debug output above — probably wrong columns, fetch failed, or no 'Yes' rows loaded.</p>
+        <?php else: ?>
+            <p class="count">Found <?= count($matches) ?> entries with SHOW = Yes</p>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Milestone</th>
+                        <th>Name</th>
+                        <th>WhatsApp</th>
+                        <th>Congrats</th>
+                        <th>SHOW (raw)</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($matches as $person): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($person['milestone']) ?></td>
+                            <td><?= htmlspecialchars($person['anonymous_name']) ?></td>
+                            <td>
+                                <?php if ($person['whatsapp_url']): ?>
+                                    <a href="<?= htmlspecialchars($person['whatsapp_url']) ?>" target="_blank">Chat</a>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php if ($person['whatsapp_congrats']): ?>
+                                    <a href="<?= htmlspecialchars($person['whatsapp_congrats']) ?>" target="_blank">Congrats</a>
+                                <?php endif; ?>
+                            </td>
+                            <td><?= htmlspecialchars($person['show']) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+    </div>
+
+    </body>
+    </html>
+    <?php
+    exit;
 }
-unset($m);
 
 return $matches;
