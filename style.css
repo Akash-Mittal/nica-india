@@ -1,93 +1,90 @@
-/* -----------------------
-   URL Validator UI
------------------------- */
-
-.form-row{
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: center;
-    margin-top: 8px;
+.whatsapp-preview{
+    max-width:1000px;
+    margin:40px auto;
+    padding:0 24px;
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    line-height:1.6;
 }
 
-.input{
-    flex: 1;
-    min-width: 260px;
-    padding: 10px 12px;
-    border: 1px solid var(--border-strong);
-    border-radius: 12px;
-    background: #fff;
-    color: var(--text);
-    outline: none;
+.copy-area{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+    margin:20px 0 24px;
 }
 
-.input:focus{
-    border-color: #9bb7ff;
-    box-shadow: 0 0 0 3px rgba(11,87,208,0.10);
+.btn-action{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height:46px;
+    padding:0 22px;
+    border-radius:12px;
+    border:0;
+    cursor:pointer;
+    font-weight:600;
+    font-size:15px;
+    text-decoration:none;
+    transition:all .18s ease;
 }
 
-.btn-row{
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
+.btn-copy{
+    background:#25D366;
+    color:#fff;
 }
 
-.btn-secondary{
-    border: 1px solid var(--border);
-    background: var(--header-bg);
-    color: var(--text);
+.btn-copy:hover{
+    background:#1fb959;
+    transform:translateY(-1px);
 }
 
-.result{
-    margin-top: 16px;
+.btn-whatsapp{
+    background:#128C7E;
+    color:#fff;
 }
 
-.alert{
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
-    padding: 14px;
-    background: #fff;
+.btn-whatsapp:hover{
+    background:#0f7469;
+    transform:translateY(-1px);
 }
 
-.alert-title{
-    font-weight: 800;
-    margin-bottom: 6px;
+.wa-link{
+    text-decoration:none;
 }
 
-.kv{
-    margin: 6px 0;
-    color: var(--text);
+#copyStatus{
+    font-size:14px;
+    color:#555;
 }
 
-.kv strong{
-    font-weight: 700;
+.preview-box{
+    background:#f0f2f5;
+    padding:26px;
+    border-radius:16px;
+    white-space:pre-wrap;
+    line-height:1.8;
+    font-size:16px;
 }
 
-.alert-success{
-    background: #e8f5e9;
-    border-color: #a5d6a7;
-}
+@media (max-width:640px){
+    .whatsapp-preview{
+        margin:24px auto;
+        padding:0 16px;
+    }
 
-.alert-error{
-    background: #ffebee;
-    border-color: #ef9a9a;
-}
+    .copy-area{
+        flex-direction:column;
+        align-items:stretch;
+    }
 
-.whatsapp-preview {
-    max-width: 800px;
-    margin: 40px auto;
-    font-family: system-ui, monospace;
-    line-height: 1.6;
-    white-space: pre-wrap;
-}
+    .btn-action{
+        width:100%;
+        justify-content:center;
+    }
 
-.preview-box {
-    white-space: normal;
-}
-
-#copyBtn {
-    padding: 10px 14px;
-    border-radius: 10px;
-    border: 1px solid rgba(0,0,0,.15);
-    cursor: pointer;
+    .preview-box{
+        padding:20px;
+        font-size:15px;
+    }
 }
