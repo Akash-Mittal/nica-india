@@ -104,7 +104,7 @@ function buildAnniversaryRows(array $anniversaries, string $mode): string
                 : "🥳 {$name} 🎊";
         } elseif ($mode === 'mobile') {
             $lines[] = $mobile !== ''
-                ? "🥳 {$name} {$mobile} 🎊"
+                ? "🥳 {$name} +{$mobile} 🎊"
                 : "🥳 {$name} 🎊";
         } else {
             continue;
