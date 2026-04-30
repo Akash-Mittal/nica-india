@@ -164,8 +164,8 @@ if ($key !== '' && isset($redirects[$key])) {
     $shouldRedirect = isAllowedRedirectUrl($url);
 
     if ($shouldRedirect) {
-        header('Refresh: 2; url=' . $url);
-    }
+        header('Location: ' . $url, true, $status);
+        exit;    }
 }
 ?>
 <!DOCTYPE html>
